@@ -92,19 +92,6 @@ if (form) {
   });
 }
 
-/* ── Clip cards: lightweight hover label swap ──────────────── */
-const clipLabels = [
-  'Late-Night Gaming Session',
-  'Cloud Build Walkthrough',
-  'Behind the Scenes',
-  'Tech Talk Live',
-];
-
-document.querySelectorAll('.clip-card').forEach((card, i) => {
-  const label = card.querySelector('.clip-card__label');
-  if (label && clipLabels[i]) label.textContent = clipLabels[i];
-});
-
 /* ── Active nav link highlight on scroll ──────────────────── */
 const sections  = document.querySelectorAll('section[id]');
 const navLinks  = document.querySelectorAll('.nav__links a[href^="#"]');
