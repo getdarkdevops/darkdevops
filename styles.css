@@ -1095,8 +1095,7 @@ ul { list-style: none; }
 
 .tool-modal__return:hover {
   border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-dim);
+  color: var(--text-primary);
 }
 
 /* ============================================================
