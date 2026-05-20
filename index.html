@@ -176,13 +176,13 @@
             </p>
 
             <div class="stack-pills animate animate--delay-3" aria-label="Technology stack">
-              <a class="stack-pill" href="https://cloud.google.com" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>Google Cloud</a>
-              <a class="stack-pill" href="https://www.python.org" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>Python</a>
-              <a class="stack-pill" href="https://cloud.google.com/bigquery/docs/introduction" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>SQL</a>
-              <a class="stack-pill" href="https://n8n.io" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>n8n</a>
-              <a class="stack-pill" href="https://zapier.com/how-it-works" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>Zapier</a>
-              <a class="stack-pill" href="https://workspace.google.com" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>Google Workspace</a>
-              <a class="stack-pill" href="https://restfulapi.net" target="_blank" rel="noopener noreferrer"><span class="dot" aria-hidden="true"></span>REST APIs</a>
+              <button type="button" class="stack-pill" data-tool="gcp"><span class="dot" aria-hidden="true"></span>Google Cloud</button>
+              <button type="button" class="stack-pill" data-tool="python"><span class="dot" aria-hidden="true"></span>Python</button>
+              <button type="button" class="stack-pill" data-tool="sql"><span class="dot" aria-hidden="true"></span>SQL</button>
+              <button type="button" class="stack-pill" data-tool="n8n"><span class="dot" aria-hidden="true"></span>n8n</button>
+              <button type="button" class="stack-pill" data-tool="zapier"><span class="dot" aria-hidden="true"></span>Zapier</button>
+              <button type="button" class="stack-pill" data-tool="workspace"><span class="dot" aria-hidden="true"></span>Google Workspace</button>
+              <button type="button" class="stack-pill" data-tool="rest"><span class="dot" aria-hidden="true"></span>REST APIs</button>
             </div>
 
             <div class="animate animate--delay-4">
@@ -404,6 +404,22 @@
       </div>
     </div>
   </footer>
+
+  <!-- Tool modal -->
+  <div class="tool-modal" id="tool-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="tool-modal-title">
+    <div class="tool-modal__backdrop" id="tool-modal-backdrop"></div>
+    <div class="tool-modal__panel">
+      <p class="tool-modal__eyebrow">Technology</p>
+      <h2 class="tool-modal__title" id="tool-modal-title"></h2>
+      <div class="tool-modal__body" id="tool-modal-body"></div>
+      <div class="tool-modal__footer">
+        <button type="button" class="btn btn--ghost tool-modal__return" id="tool-modal-close">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Return
+        </button>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

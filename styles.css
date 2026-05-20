@@ -993,6 +993,107 @@ ul { list-style: none; }
 }
 
 /* ============================================================
+   Tool Modal
+   ============================================================ */
+
+.tool-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.tool-modal.open {
+  visibility: visible;
+  pointer-events: all;
+}
+
+.tool-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+
+.tool-modal.open .tool-modal__backdrop {
+  opacity: 1;
+}
+
+.tool-modal__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 660px;
+  background: var(--surface);
+  border: 1px solid var(--border-hover);
+  padding: clamp(2.5rem, 5vw, 4rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+
+.tool-modal.open .tool-modal__panel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.tool-modal__eyebrow {
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.tool-modal__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.tool-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tool-modal__body p {
+  font-size: 0.975rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.tool-modal__body strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.tool-modal__footer {
+  display: flex;
+  justify-content: center;
+}
+
+.tool-modal__return {
+  gap: 0.6rem;
+}
+
+/* ============================================================
    Footer
    ============================================================ */
 
