@@ -1093,6 +1093,12 @@ ul { list-style: none; }
   gap: 0.6rem;
 }
 
+.tool-modal__return:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
 /* ============================================================
    Footer
    ============================================================ */
