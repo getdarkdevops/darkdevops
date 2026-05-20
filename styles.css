@@ -673,12 +673,14 @@ ul { list-style: none; }
   font-weight: 500;
   letter-spacing: 0.05em;
   color: var(--text-secondary);
-  transition: border-color 0.2s, color 0.2s;
+  transition: border-color 0.2s, color 0.2s, transform 0.2s;
+  cursor: pointer;
 }
 
 .stack-pill:hover {
   border-color: var(--accent);
   color: var(--text-primary);
+  transform: translateY(-1px);
 }
 
 .stack-pill .dot {
