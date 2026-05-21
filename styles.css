@@ -436,40 +436,6 @@ ul { list-style: none; }
   animation: fadeUp 0.9s var(--ease-out) 0.65s forwards;
 }
 
-.hero__scroll {
-  position: absolute;
-  bottom: 2.5rem;
-  left: clamp(1.25rem, 5vw, 3rem);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  opacity: 0;
-  animation: fadeIn 1s ease 1.2s forwards;
-}
-
-.hero__scroll span {
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.hero__scroll-line {
-  width: 40px;
-  height: 1px;
-  background: var(--text-muted);
-  position: relative;
-  overflow: hidden;
-}
-
-.hero__scroll-line::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--accent);
-  transform: translateX(-100%);
-  animation: slideLine 2s ease 1.5s infinite;
-}
 
 @keyframes fadeUp {
   to { opacity: 1; transform: translateY(0); }
@@ -480,11 +446,6 @@ ul { list-style: none; }
   to { opacity: 1; }
 }
 
-@keyframes slideLine {
-  0%   { transform: translateX(-100%); }
-  50%  { transform: translateX(0); }
-  100% { transform: translateX(100%); }
-}
 
 /* ============================================================
    Services Overview
