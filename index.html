@@ -606,17 +606,19 @@
   <script src="script.js"></script>
 
   <script>
-    /* ── Particle Network Background — Energy Field ── */
+    /* ── Particle Network — Clustered Energy Field ── */
     (function () {
       const canvas = document.getElementById('particle-canvas');
       const ctx    = canvas.getContext('2d');
 
       const PARTICLE_COLOR  = 'rgba(245, 245, 245, 0.45)';
       const LINE_COLOR_BASE = [196, 30, 58];
-      const REPEL_RADIUS    = 150;   // how far the cursor pushes
-      const MAX_DIST        = 130;   // max line-draw distance
-      const MAX_SPEED       = 2.2;
-      const EDGE_MARGIN     = 90;    // soft-boundary depth in px
+      const REPEL_RADIUS    = 160;   // cursor influence radius
+      const REPEL_FORCE     = 3.0;   // how hard the cursor kicks them
+      const MAX_DIST        = 130;   // line connection distance
+      const MAX_SPEED       = 7.0;   // top speed when freshly pushed
+      const SPRING_K        = 0.001; // pull strength back to home
+      const CLUSTER_SPREAD  = 72;    // px radius of each cluster
 
       let W, H, particles, frame = 0;
       let mouse = { x: -9999, y: -9999 };
@@ -627,50 +629,63 @@
         H = canvas.height = window.innerHeight;
       }
 
-      function Particle() {
-        // Spawn inside the soft-boundary zone so they start distributed
-        const m   = EDGE_MARGIN + 20;
-        this.x    = m + Math.random() * (W - m * 2);
-        this.y    = m + Math.random() * (H - m * 2);
-        this.vx   = (Math.random() - 0.5) * 0.4;
-        this.vy   = (Math.random() - 0.5) * 0.4;
-        this.r    = Math.random() * 1.5 + 1.5;
-        // Individual energy oscillation — each particle has its own rhythm
+      // Five cluster anchor points as % of viewport
+      function clusterCenters() {
+        return [
+          { x: W * 0.17, y: H * 0.27 },
+          { x: W * 0.76, y: H * 0.21 },
+          { x: W * 0.50, y: H * 0.56 },
+          { x: W * 0.83, y: H * 0.71 },
+          { x: W * 0.21, y: H * 0.77 },
+        ];
+      }
+
+      function Particle(hx, hy) {
+        this.hx    = hx;                           // home X
+        this.hy    = hy;                           // home Y
+        this.x     = hx + (Math.random() - 0.5) * 8;
+        this.y     = hy + (Math.random() - 0.5) * 8;
+        this.vx    = (Math.random() - 0.5) * 0.4;
+        this.vy    = (Math.random() - 0.5) * 0.4;
+        this.r     = Math.random() * 1.5 + 1.5;
+        // Individual oscillation rhythm — no two particles move alike
         this.phase = Math.random() * Math.PI * 2;
-        this.freqX = 0.0008 + Math.random() * 0.0012;
-        this.freqY = 0.0008 + Math.random() * 0.0012;
-        this.amp   = 0.12  + Math.random() * 0.12;
+        this.freqX = 0.0006 + Math.random() * 0.0010;
+        this.freqY = 0.0006 + Math.random() * 0.0010;
+        this.amp   = 0.10  + Math.random() * 0.12;
       }
 
       Particle.prototype.update = function (t) {
-        // ── Energy field drift (sine oscillation, unique per particle) ──
-        this.vx += Math.sin(t * this.freqX + this.phase)        * this.amp * 0.04;
-        this.vy += Math.cos(t * this.freqY + this.phase * 1.37) * this.amp * 0.04;
+        // Energy field oscillation — gentle sine drift around home
+        this.vx += Math.sin(t * this.freqX + this.phase)        * this.amp * 0.035;
+        this.vy += Math.cos(t * this.freqY + this.phase * 1.41) * this.amp * 0.035;
 
-        // ── Soft boundary — gentle push back from all four edges ──
-        if (this.x < EDGE_MARGIN)     this.vx += ((EDGE_MARGIN - this.x)     / EDGE_MARGIN) * 0.35;
-        if (this.x > W - EDGE_MARGIN) this.vx -= ((this.x - (W - EDGE_MARGIN)) / EDGE_MARGIN) * 0.35;
-        if (this.y < EDGE_MARGIN)     this.vy += ((EDGE_MARGIN - this.y)     / EDGE_MARGIN) * 0.35;
-        if (this.y > H - EDGE_MARGIN) this.vy -= ((this.y - (H - EDGE_MARGIN)) / EDGE_MARGIN) * 0.35;
+        // Spring — weak enough that energy field dominates near home,
+        // but strong enough to reel them back after a big push
+        this.vx += (this.hx - this.x) * SPRING_K;
+        this.vy += (this.hy - this.y) * SPRING_K;
 
-        // ── Mouse repulsion ──
+        // Mouse repulsion — strong kick, particles fly across the screen
         if (!isMobile() && mouse.x > 0) {
           const dx   = this.x - mouse.x;
           const dy   = this.y - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < REPEL_RADIUS && dist > 0) {
-            const force = ((REPEL_RADIUS - dist) / REPEL_RADIUS) * 0.9;
+            const force = ((REPEL_RADIUS - dist) / REPEL_RADIUS) * REPEL_FORCE;
             this.vx += (dx / dist) * force;
             this.vy += (dy / dist) * force;
           }
         }
 
-        // ── Friction ──
-        this.vx *= 0.965;
-        this.vy *= 0.965;
+        // Adaptive friction:
+        //  – fast (just pushed) → near-frictionless glide
+        //  – slow (settling)   → damp quickly back to rest
+        const spd  = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        const fric = spd > 2.0 ? 0.991 : 0.958;
+        this.vx *= fric;
+        this.vy *= fric;
 
-        // ── Speed cap ──
-        const spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        // Speed cap
         if (spd > MAX_SPEED) {
           this.vx = (this.vx / spd) * MAX_SPEED;
           this.vy = (this.vy / spd) * MAX_SPEED;
@@ -679,23 +694,35 @@
         this.x += this.vx;
         this.y += this.vy;
 
-        // Hard clamp — absolute last resort, no wrapping
-        this.x = Math.max(4, Math.min(W - 4, this.x));
-        this.y = Math.max(4, Math.min(H - 4, this.y));
+        // Hard screen clamp — safety net only, spring does the real work
+        this.x = Math.max(2, Math.min(W - 2, this.x));
+        this.y = Math.max(2, Math.min(H - 2, this.y));
       };
 
       function init() {
         resize();
-        const count = isMobile()
-          ? Math.floor(40 + Math.random() * 20)
-          : Math.floor(90 + Math.random() * 30);
-        particles = Array.from({ length: count }, () => new Particle());
+        const centers = clusterCenters();
+        const total   = isMobile() ? 60 : 120;
+        const perClus = Math.floor(total / centers.length);
+
+        particles = [];
+        centers.forEach((c, ci) => {
+          const n = perClus + (ci === 0 ? total % centers.length : 0);
+          for (let i = 0; i < n; i++) {
+            // Polar placement biased toward cluster center (√ bias = denser core)
+            const angle = Math.random() * Math.PI * 2;
+            const r     = Math.sqrt(Math.random()) * CLUSTER_SPREAD;
+            const hx    = Math.max(10, Math.min(W - 10, c.x + Math.cos(angle) * r));
+            const hy    = Math.max(10, Math.min(H - 10, c.y + Math.sin(angle) * r));
+            particles.push(new Particle(hx, hy));
+          }
+        });
       }
 
       function draw() {
         ctx.clearRect(0, 0, W, H);
 
-        // Lines
+        // Lines between nearby particles
         for (let i = 0; i < particles.length; i++) {
           for (let j = i + 1; j < particles.length; j++) {
             const dx   = particles[i].x - particles[j].x;
@@ -729,7 +756,7 @@
         requestAnimationFrame(loop);
       }
 
-      // Mouse / touch tracking — window-level so it works across the full page
+      // Window-level tracking — works across the entire page while scrolling
       if (!isMobile()) {
         window.addEventListener('mousemove', e => {
           mouse.x = e.clientX;
@@ -743,10 +770,11 @@
 
       window.addEventListener('resize', () => {
         resize();
-        // nudge any particle that's now outside the new bounds back inside
         particles.forEach(p => {
-          p.x = Math.max(EDGE_MARGIN, Math.min(W - EDGE_MARGIN, p.x));
-          p.y = Math.max(EDGE_MARGIN, Math.min(H - EDGE_MARGIN, p.y));
+          p.hx = Math.min(p.hx, W - 10);
+          p.hy = Math.min(p.hy, H - 10);
+          p.x  = Math.min(p.x,  W - 2);
+          p.y  = Math.min(p.y,  H - 2);
         });
       });
 
