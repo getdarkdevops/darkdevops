@@ -79,6 +79,19 @@ button {
 ul { list-style: none; }
 
 /* ============================================================
+   Particle Network Canvas
+   ============================================================ */
+
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================
    Noise Grain Overlay
    ============================================================ */
 
@@ -356,6 +369,83 @@ ul { list-style: none; }
   overflow: hidden;
 }
 
+/* ── Breathing crimson glow orb ── */
+.hero__glow {
+  position: absolute;
+  width: 1000px;
+  height: 1000px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(196, 30, 58, 0.18) 0%,
+    rgba(196, 30, 58, 0.08) 35%,
+    rgba(196, 30, 58, 0.02) 60%,
+    transparent 70%
+  );
+  top: 50%;
+  left: 32%;
+  transform: translate(-50%, -52%);
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: glow-breathe 7s ease-in-out infinite;
+}
+
+@keyframes glow-breathe {
+  0%, 100% {
+    opacity: 0.55;
+    transform: translate(-50%, -52%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -52%) scale(1.22);
+  }
+}
+
+/* ── Scrolling marquee strip ── */
+.hero__marquee {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  border-top: 1px solid rgba(245, 245, 245, 0.05);
+  padding: 0.9rem 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 8%, black 92%, transparent 100%);
+  opacity: 0;
+  animation: fadeIn 1s ease-out 1.2s forwards;
+}
+
+.hero__marquee-inner {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 38s linear infinite;
+}
+
+.hero__marquee-track {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 3rem;
+  flex-shrink: 0;
+}
+
+.hero__marquee-track span {
+  color: var(--accent);
+  margin: 0 1.75rem;
+  font-size: 0.75em;
+  line-height: 1;
+}
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 /* Subtle dot grid */
 .hero::before {
   content: '';
@@ -407,8 +497,14 @@ ul { list-style: none; }
   letter-spacing: -0.04em;
   color: var(--text-primary);
   opacity: 0;
-  animation: fadeUp 0.9s var(--ease-out) 0.35s forwards;
+  animation: fadeUp 0.9s var(--ease-out) 0.35s forwards,
+             title-glow 2.5s ease-out 1.4s forwards;
   margin-bottom: 2rem;
+}
+
+@keyframes title-glow {
+  from { text-shadow: 0 0 0 rgba(196, 30, 58, 0); }
+  to   { text-shadow: 0 0 80px rgba(196, 30, 58, 0.22), 0 0 160px rgba(196, 30, 58, 0.08); }
 }
 
 .hero__title em {
@@ -818,6 +914,289 @@ ul { list-style: none; }
   font-size: 0.84rem;
   line-height: 1.6;
   color: var(--text-muted);
+}
+
+/* ============================================================
+   Pricing
+   ============================================================ */
+
+.pricing {
+  padding: var(--section-pad) 0;
+  background: var(--bg-alt);
+  border-top: 1px solid var(--border);
+}
+
+.pricing__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-bottom: 1px;
+}
+
+/* Card base */
+.pricing-card {
+  background: var(--bg);
+  padding: 2.75rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  transition: background 0.3s ease;
+}
+
+.pricing-card:hover {
+  background: var(--surface);
+}
+
+/* Featured card */
+.pricing-card--featured {
+  background: var(--surface);
+}
+
+.pricing-card--featured::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+}
+
+.pricing-card--featured:hover {
+  background: var(--surface-2);
+}
+
+/* Badge */
+.pricing-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 2px;
+  width: fit-content;
+}
+
+/* Meta row: number + timeline */
+.pricing-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pricing-card__number {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-style: italic;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+}
+
+.pricing-card__timeline {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+/* Name & subtitle */
+.pricing-card__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.pricing-card__subtitle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Price */
+.pricing-card__price {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+/* Feature list */
+.pricing-card__features {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: auto;
+}
+
+.pricing-card__features li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.65rem;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.pricing-card__features li::before {
+  content: '';
+  width: 14px;
+  height: 1px;
+  background: var(--accent);
+  flex-shrink: 0;
+  margin-top: 0.7em;
+}
+
+/* Managed services tiers */
+.pricing-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: auto;
+}
+
+.pricing-tier {
+  background: var(--bg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  transition: background 0.25s;
+}
+
+.pricing-card:hover .pricing-tier {
+  background: var(--surface);
+}
+
+.pricing-tier__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.pricing-tier__name {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
+}
+
+.pricing-tier__price {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.pricing-tier__price span {
+  font-size: 0.7rem;
+  font-weight: 400;
+  font-style: normal;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.pricing-tier__desc {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Hourly callout bar */
+.pricing__hourly {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: none;
+  padding: 1.5rem 2.5rem;
+  margin-bottom: clamp(2.5rem, 5vw, 4rem);
+}
+
+.pricing__hourly-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.pricing__hourly-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.pricing__hourly-text strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* CTA block */
+.pricing__cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--border);
+}
+
+.pricing__cta-text {
+  font-family: var(--font-display);
+  font-size: clamp(1rem, 1.8vw, 1.3rem);
+  font-weight: 300;
+  font-style: italic;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
+  max-width: 68ch;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .pricing__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .pricing__hourly {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .pricing__cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 /* ============================================================
