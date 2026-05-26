@@ -205,6 +205,7 @@
          AUTOMATION CONSULTING
     ────────────────────────────────────────── -->
     <section class="automation" id="automation" aria-label="Cloud automation consulting">
+      <div class="automation__ink" aria-hidden="true"></div>
       <div class="container">
         <div class="automation__layout">
 
@@ -606,14 +607,17 @@
     /* ── Particle Network Background ── */
     (function () {
       const canvas = document.getElementById('particle-canvas');
-      const ctx = canvas.getContext('2d');
+      const ctx    = canvas.getContext('2d');
 
-      const PARTICLE_COLOR  = 'rgba(245, 245, 245, 0.45)';  // soft white dots
-      const LINE_COLOR_BASE = [196, 30, 58];                // crimson lines (rgb)
+      const PARTICLE_COLOR  = 'rgba(245, 245, 245, 0.45)';
+      const LINE_COLOR_BASE = [196, 30, 58];
       const REPEL_RADIUS    = 120;
       const MAX_DIST        = 130;
+      const MAX_SPEED       = 1.8;
 
-      let W, H, particles, mouse = { x: -9999, y: -9999 };
+      let W, H, particles, ripples = [];
+      let mouse     = { x: -9999, y: -9999 };
+      let lastMouse = { x: -1,    y: -1    };
       const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
       function resize() {
@@ -624,37 +628,83 @@
       function Particle() {
         this.x  = Math.random() * W;
         this.y  = Math.random() * H;
-        this.vx = (Math.random() - 0.5) * 0.4;
-        this.vy = (Math.random() - 0.5) * 0.4;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
         this.r  = Math.random() * 1.5 + 1.5;
-        this.ox = this.x;
-        this.oy = this.y;
       }
 
       Particle.prototype.update = function () {
-        if (!isMobile()) {
+        // Mouse repel
+        if (!isMobile() && mouse.x > 0) {
           const dx = this.x - mouse.x;
           const dy = this.y - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < REPEL_RADIUS) {
+          if (dist < REPEL_RADIUS && dist > 0) {
             const force = (REPEL_RADIUS - dist) / REPEL_RADIUS;
             this.vx += (dx / dist) * force * 0.6;
             this.vy += (dy / dist) * force * 0.6;
           }
         }
 
-        // friction & drift back
-        this.vx *= 0.95;
-        this.vy *= 0.95;
-        this.x  += this.vx;
-        this.y  += this.vy;
+        // Ripple wave forces
+        for (const rip of ripples) {
+          const dx   = this.x - rip.x;
+          const dy   = this.y - rip.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const diff = Math.abs(dist - rip.radius);
+          if (diff < rip.waveWidth && dist > 0) {
+            const intensity = (1 - diff / rip.waveWidth) * rip.force;
+            const falloff   = Math.max(0, 1 - rip.radius / rip.maxRadius);
+            const angle     = Math.atan2(dy, dx);
+            this.vx += Math.cos(angle) * intensity * falloff;
+            this.vy += Math.sin(angle) * intensity * falloff;
+          }
+        }
 
-        // wrap edges
+        // Gentle random wander — always drifting
+        this.vx += (Math.random() - 0.5) * 0.025;
+        this.vy += (Math.random() - 0.5) * 0.025;
+
+        // Friction
+        this.vx *= 0.97;
+        this.vy *= 0.97;
+
+        // Speed cap
+        const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+        if (speed > MAX_SPEED) {
+          this.vx = (this.vx / speed) * MAX_SPEED;
+          this.vy = (this.vy / speed) * MAX_SPEED;
+        }
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Wrap edges
         if (this.x < -10) this.x = W + 10;
         if (this.x > W + 10) this.x = -10;
         if (this.y < -10) this.y = H + 10;
         if (this.y > H + 10) this.y = -10;
       };
+
+      function spawnRipple() {
+        const rx = (lastMouse.x > 0 && lastMouse.x < W) ? lastMouse.x : Math.random() * W;
+        const ry = (lastMouse.y > 0 && lastMouse.y < H) ? lastMouse.y : Math.random() * H;
+        ripples.push({
+          x: rx, y: ry,
+          radius:    0,
+          maxRadius: Math.max(W, H) * 0.9,
+          speed:     2.5,
+          waveWidth: 55,
+          force:     1.4
+        });
+      }
+
+      function updateRipples() {
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          ripples[i].radius += ripples[i].speed;
+          if (ripples[i].radius > ripples[i].maxRadius) ripples.splice(i, 1);
+        }
+      }
 
       function init() {
         resize();
@@ -662,12 +712,14 @@
           ? Math.floor(40 + Math.random() * 20)
           : Math.floor(80 + Math.random() * 40);
         particles = Array.from({ length: count }, () => new Particle());
+        // First ripple after 2s, then every 4.5s
+        setTimeout(() => { spawnRipple(); setInterval(spawnRipple, 4500); }, 2000);
       }
 
       function draw() {
         ctx.clearRect(0, 0, W, H);
 
-        // draw lines
+        // Lines
         for (let i = 0; i < particles.length; i++) {
           for (let j = i + 1; j < particles.length; j++) {
             const dx   = particles[i].x - particles[j].x;
@@ -676,7 +728,7 @@
             if (dist < MAX_DIST) {
               const alpha = (1 - dist / MAX_DIST) * 0.35;
               ctx.strokeStyle = `rgba(${LINE_COLOR_BASE[0]},${LINE_COLOR_BASE[1]},${LINE_COLOR_BASE[2]},${alpha})`;
-              ctx.lineWidth = 0.8;
+              ctx.lineWidth   = 0.8;
               ctx.beginPath();
               ctx.moveTo(particles[i].x, particles[i].y);
               ctx.lineTo(particles[j].x, particles[j].y);
@@ -685,7 +737,7 @@
           }
         }
 
-        // draw dots
+        // Dots
         for (const p of particles) {
           ctx.fillStyle = PARTICLE_COLOR;
           ctx.beginPath();
@@ -695,16 +747,17 @@
       }
 
       function loop() {
+        updateRipples();
         particles.forEach(p => p.update());
         draw();
         requestAnimationFrame(loop);
       }
 
-      // mouse tracking (desktop only)
+      // Mouse tracking (desktop only)
       if (!isMobile()) {
         window.addEventListener('mousemove', e => {
-          mouse.x = e.clientX;
-          mouse.y = e.clientY;
+          mouse.x = lastMouse.x = e.clientX;
+          mouse.y = lastMouse.y = e.clientY;
         });
         window.addEventListener('mouseleave', () => {
           mouse.x = -9999;
@@ -714,7 +767,6 @@
 
       window.addEventListener('resize', () => {
         resize();
-        // re-clamp existing particles to new bounds
         particles.forEach(p => {
           p.x = Math.min(p.x, W);
           p.y = Math.min(p.y, H);

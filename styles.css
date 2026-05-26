@@ -784,17 +784,62 @@ ul { list-style: none; }
   position: relative;
 }
 
-/* Subtle grid background */
+/* Morphing ink blobs */
 .automation::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(var(--border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 80px 80px;
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  width: 780px;
+  height: 780px;
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  background: radial-gradient(circle, rgba(196, 30, 58, 0.1) 0%, rgba(196, 30, 58, 0.03) 50%, transparent 70%);
+  top: -15%;
+  left: -8%;
+  pointer-events: none;
+  animation: ink-morph-a 22s ease-in-out infinite;
+}
+
+.automation::after {
+  content: '';
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 40% 60% 65% 35% / 45% 55% 45% 55%;
+  background: radial-gradient(circle, rgba(196, 30, 58, 0.07) 0%, rgba(196, 30, 58, 0.02) 50%, transparent 70%);
+  bottom: -8%;
+  right: 3%;
+  pointer-events: none;
+  animation: ink-morph-b 28s ease-in-out infinite;
+}
+
+.automation__ink {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 55% 45% 40% 60% / 50% 65% 35% 50%;
+  background: radial-gradient(circle, rgba(196, 30, 58, 0.055) 0%, transparent 65%);
+  top: 38%;
+  left: 52%;
+  pointer-events: none;
+  animation: ink-morph-c 32s ease-in-out infinite;
+}
+
+@keyframes ink-morph-a {
+  0%,  100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; transform: translate(0,    0  ) rotate(0deg);  }
+  25%        { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; transform: translate(40px, 25px) rotate(6deg);  }
+  50%        { border-radius: 50% 60% 30% 40% / 40% 70% 60% 30%; transform: translate(-25px,50px) rotate(-4deg); }
+  75%        { border-radius: 40% 30% 60% 70% / 70% 40% 50% 60%; transform: translate(15px,-30px) rotate(10deg); }
+}
+
+@keyframes ink-morph-b {
+  0%,  100% { border-radius: 40% 60% 65% 35% / 45% 55% 45% 55%; transform: translate(0,    0  ); }
+  33%        { border-radius: 70% 30% 50% 50% / 30% 60% 40% 70%; transform: translate(-50px,35px); }
+  66%        { border-radius: 30% 55% 30% 70% / 60% 40% 60% 40%; transform: translate(25px,-40px); }
+}
+
+@keyframes ink-morph-c {
+  0%,  100% { border-radius: 55% 45% 40% 60% / 50% 65% 35% 50%; transform: translate(0,    0  ) scale(1);    }
+  40%        { border-radius: 35% 65% 60% 40% / 65% 35% 65% 35%; transform: translate(30px,-20px) scale(1.1);  }
+  70%        { border-radius: 65% 35% 45% 55% / 40% 60% 40% 60%; transform: translate(-20px,30px) scale(0.95); }
 }
 
 .automation__layout {
