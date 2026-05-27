@@ -606,21 +606,20 @@
   <script src="script.js"></script>
 
   <script>
-    /* ── Particle Network — Clustered Energy Field ── */
+    /* ── Particle Network — Energy Field + Cluster Pulses ── */
     (function () {
       const canvas = document.getElementById('particle-canvas');
       const ctx    = canvas.getContext('2d');
 
       const PARTICLE_COLOR  = 'rgba(245, 245, 245, 0.45)';
       const LINE_COLOR_BASE = [196, 30, 58];
-      const REPEL_RADIUS    = 160;   // cursor influence radius
-      const REPEL_FORCE     = 3.0;   // how hard the cursor kicks them
-      const MAX_DIST        = 130;   // line connection distance
-      const MAX_SPEED       = 7.0;   // top speed when freshly pushed
-      const SPRING_K        = 0.001; // pull strength back to home
-      const CLUSTER_SPREAD  = 72;    // px radius of each cluster
+      const REPEL_RADIUS    = 150;
+      const MAX_DIST        = 130;
+      const MAX_SPEED       = 2.2;
+      const EDGE_MARGIN     = 90;
+      const CLUSTER_SPREAD  = 70;
 
-      let W, H, particles, frame = 0;
+      let W, H, particles, ripples = [], frame = 0;
       let mouse = { x: -9999, y: -9999 };
       const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
@@ -629,7 +628,6 @@
         H = canvas.height = window.innerHeight;
       }
 
-      // Five cluster anchor points as % of viewport
       function clusterCenters() {
         return [
           { x: W * 0.17, y: H * 0.27 },
@@ -640,52 +638,60 @@
         ];
       }
 
-      function Particle(hx, hy) {
-        this.hx    = hx;                           // home X
-        this.hy    = hy;                           // home Y
-        this.x     = hx + (Math.random() - 0.5) * 8;
-        this.y     = hy + (Math.random() - 0.5) * 8;
+      function Particle(x, y) {
+        this.x     = x + (Math.random() - 0.5) * 8;
+        this.y     = y + (Math.random() - 0.5) * 8;
         this.vx    = (Math.random() - 0.5) * 0.4;
         this.vy    = (Math.random() - 0.5) * 0.4;
         this.r     = Math.random() * 1.5 + 1.5;
-        // Individual oscillation rhythm — no two particles move alike
         this.phase = Math.random() * Math.PI * 2;
-        this.freqX = 0.0006 + Math.random() * 0.0010;
-        this.freqY = 0.0006 + Math.random() * 0.0010;
+        this.freqX = 0.0007 + Math.random() * 0.001;
+        this.freqY = 0.0007 + Math.random() * 0.001;
         this.amp   = 0.10  + Math.random() * 0.12;
       }
 
       Particle.prototype.update = function (t) {
-        // Energy field oscillation — gentle sine drift around home
-        this.vx += Math.sin(t * this.freqX + this.phase)        * this.amp * 0.035;
-        this.vy += Math.cos(t * this.freqY + this.phase * 1.41) * this.amp * 0.035;
+        // Energy field — each particle drifts on its own sine rhythm
+        this.vx += Math.sin(t * this.freqX + this.phase)        * this.amp * 0.04;
+        this.vy += Math.cos(t * this.freqY + this.phase * 1.41) * this.amp * 0.04;
 
-        // Spring — weak enough that energy field dominates near home,
-        // but strong enough to reel them back after a big push
-        this.vx += (this.hx - this.x) * SPRING_K;
-        this.vy += (this.hy - this.y) * SPRING_K;
+        // Soft boundary — invisible wall keeps them off the edges
+        if (this.x < EDGE_MARGIN)     this.vx += ((EDGE_MARGIN - this.x)       / EDGE_MARGIN) * 0.32;
+        if (this.x > W - EDGE_MARGIN) this.vx -= ((this.x - (W - EDGE_MARGIN)) / EDGE_MARGIN) * 0.32;
+        if (this.y < EDGE_MARGIN)     this.vy += ((EDGE_MARGIN - this.y)       / EDGE_MARGIN) * 0.32;
+        if (this.y > H - EDGE_MARGIN) this.vy -= ((this.y - (H - EDGE_MARGIN)) / EDGE_MARGIN) * 0.32;
 
-        // Mouse repulsion — strong kick, particles fly across the screen
+        // Ripple wave forces from cluster pulses
+        for (const rip of ripples) {
+          const dx   = this.x - rip.x;
+          const dy   = this.y - rip.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const diff = Math.abs(dist - rip.radius);
+          if (diff < rip.waveWidth && dist > 0) {
+            const intensity = (1 - diff / rip.waveWidth) * rip.force;
+            const falloff   = Math.max(0, 1 - rip.radius / rip.maxRadius);
+            const angle     = Math.atan2(dy, dx);
+            this.vx += Math.cos(angle) * intensity * falloff;
+            this.vy += Math.sin(angle) * intensity * falloff;
+          }
+        }
+
+        // Mouse repulsion
         if (!isMobile() && mouse.x > 0) {
           const dx   = this.x - mouse.x;
           const dy   = this.y - mouse.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < REPEL_RADIUS && dist > 0) {
-            const force = ((REPEL_RADIUS - dist) / REPEL_RADIUS) * REPEL_FORCE;
+            const force = ((REPEL_RADIUS - dist) / REPEL_RADIUS) * 1.2;
             this.vx += (dx / dist) * force;
             this.vy += (dy / dist) * force;
           }
         }
 
-        // Adaptive friction:
-        //  – fast (just pushed) → near-frictionless glide
-        //  – slow (settling)   → damp quickly back to rest
-        const spd  = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-        const fric = spd > 2.0 ? 0.991 : 0.958;
-        this.vx *= fric;
-        this.vy *= fric;
+        this.vx *= 0.97;
+        this.vy *= 0.97;
 
-        // Speed cap
+        const spd = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         if (spd > MAX_SPEED) {
           this.vx = (this.vx / spd) * MAX_SPEED;
           this.vy = (this.vy / spd) * MAX_SPEED;
@@ -694,10 +700,42 @@
         this.x += this.vx;
         this.y += this.vy;
 
-        // Hard screen clamp — safety net only, spring does the real work
         this.x = Math.max(2, Math.min(W - 2, this.x));
         this.y = Math.max(2, Math.min(H - 2, this.y));
       };
+
+      // Fire a visible shockwave from one of the 5 cluster centers
+      let lastClusterIdx = -1;
+      function spawnClusterPulse() {
+        const centers = clusterCenters();
+        // Pick a different cluster than last time
+        let idx;
+        do { idx = Math.floor(Math.random() * centers.length); }
+        while (idx === lastClusterIdx && centers.length > 1);
+        lastClusterIdx = idx;
+        const c = centers[idx];
+        ripples.push({
+          x: c.x, y: c.y,
+          radius:    0,
+          maxRadius: Math.max(W, H) * 0.75,
+          speed:     2.2,
+          waveWidth: 45,
+          force:     0.85,
+        });
+      }
+
+      function updateRipples() {
+        for (let i = ripples.length - 1; i >= 0; i--) {
+          ripples[i].radius += ripples[i].speed;
+          if (ripples[i].radius > ripples[i].maxRadius) ripples.splice(i, 1);
+        }
+      }
+
+      function schedulePulse() {
+        // Fires every 5–9 seconds, never predictably
+        setTimeout(() => { spawnClusterPulse(); schedulePulse(); },
+          5000 + Math.random() * 4000);
+      }
 
       function init() {
         resize();
@@ -709,20 +747,35 @@
         centers.forEach((c, ci) => {
           const n = perClus + (ci === 0 ? total % centers.length : 0);
           for (let i = 0; i < n; i++) {
-            // Polar placement biased toward cluster center (√ bias = denser core)
             const angle = Math.random() * Math.PI * 2;
             const r     = Math.sqrt(Math.random()) * CLUSTER_SPREAD;
-            const hx    = Math.max(10, Math.min(W - 10, c.x + Math.cos(angle) * r));
-            const hy    = Math.max(10, Math.min(H - 10, c.y + Math.sin(angle) * r));
-            particles.push(new Particle(hx, hy));
+            const px    = Math.max(EDGE_MARGIN + 5, Math.min(W - EDGE_MARGIN - 5, c.x + Math.cos(angle) * r));
+            const py    = Math.max(EDGE_MARGIN + 5, Math.min(H - EDGE_MARGIN - 5, c.y + Math.sin(angle) * r));
+            particles.push(new Particle(px, py));
           }
         });
+
+        // First pulse at 3s, then randomised
+        setTimeout(() => { spawnClusterPulse(); schedulePulse(); }, 3000);
       }
 
       function draw() {
         ctx.clearRect(0, 0, W, H);
 
-        // Lines between nearby particles
+        // Visible pulse rings — the shockwave you can see travel outward
+        for (const rip of ripples) {
+          const progress = rip.radius / rip.maxRadius;
+          const alpha    = (1 - progress) * 0.28;
+          if (alpha > 0.004) {
+            ctx.beginPath();
+            ctx.arc(rip.x, rip.y, rip.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(196, 30, 58, ${alpha})`;
+            ctx.lineWidth   = Math.max(0.4, 2.2 * (1 - progress));
+            ctx.stroke();
+          }
+        }
+
+        // Connection lines
         for (let i = 0; i < particles.length; i++) {
           for (let j = i + 1; j < particles.length; j++) {
             const dx   = particles[i].x - particles[j].x;
@@ -751,12 +804,12 @@
 
       function loop() {
         frame++;
+        updateRipples();
         particles.forEach(p => p.update(frame));
         draw();
         requestAnimationFrame(loop);
       }
 
-      // Window-level tracking — works across the entire page while scrolling
       if (!isMobile()) {
         window.addEventListener('mousemove', e => {
           mouse.x = e.clientX;
@@ -771,10 +824,8 @@
       window.addEventListener('resize', () => {
         resize();
         particles.forEach(p => {
-          p.hx = Math.min(p.hx, W - 10);
-          p.hy = Math.min(p.hy, H - 10);
-          p.x  = Math.min(p.x,  W - 2);
-          p.y  = Math.min(p.y,  H - 2);
+          p.x = Math.max(EDGE_MARGIN, Math.min(W - EDGE_MARGIN, p.x));
+          p.y = Math.max(EDGE_MARGIN, Math.min(H - EDGE_MARGIN, p.y));
         });
       });
 
