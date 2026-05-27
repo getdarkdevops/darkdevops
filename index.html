@@ -716,9 +716,9 @@
           x: c.x, y: c.y,
           radius:    0,
           maxRadius: Math.max(W, H) * 0.75,
-          speed:     1.8,
-          waveWidth: 32,   // narrow front — precise, not broad
-          force:     0.28, // barely a nudge — spring pulls them right back
+          speed:     0.7,
+          waveWidth: 28,
+          force:     0.07,
         });
       }
 
@@ -761,12 +761,12 @@
         // Pulse rings — visible but delicate
         for (const rip of ripples) {
           const progress = rip.radius / rip.maxRadius;
-          const alpha    = (1 - progress) * 0.18;
+          const alpha    = (1 - progress) * 0.12;
           if (alpha > 0.003) {
             ctx.beginPath();
             ctx.arc(rip.x, rip.y, rip.radius, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(196, 30, 58, ${alpha})`;
-            ctx.lineWidth   = Math.max(0.3, 1.6 * (1 - progress));
+            ctx.lineWidth   = Math.max(0.3, 1.0 * (1 - progress));
             ctx.stroke();
           }
         }
