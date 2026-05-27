@@ -84,7 +84,7 @@ ul { list-style: none; }
 
 #particle-canvas {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
@@ -97,7 +97,7 @@ ul { list-style: none; }
 
 .noise-overlay {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   pointer-events: none;
   z-index: 9999;
   opacity: 0.025;
@@ -322,10 +322,10 @@ ul { list-style: none; }
 /* Mobile Nav */
 .nav-mobile {
   position: fixed;
-  inset: 0;
-  top: 68px;
+  top: 68px; left: 0; right: 0; bottom: 0;
   background: rgba(10, 10, 10, 0.97);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   z-index: 99;
   display: flex;
   flex-direction: column;
@@ -360,6 +360,7 @@ ul { list-style: none; }
 
 .hero {
   position: relative;
+  min-height: 100vh;
   min-height: 100svh;
   display: flex;
   flex-direction: column;
@@ -419,7 +420,7 @@ ul { list-style: none; }
 .hero::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-image: radial-gradient(circle, rgba(245,245,245,0.06) 1px, transparent 1px);
   background-size: 40px 40px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%);
@@ -559,7 +560,7 @@ ul { list-style: none; }
 .service-card::before {
   content: '';
   position: absolute;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: linear-gradient(135deg, var(--accent-dim) 0%, transparent 60%);
   opacity: 0;
   transition: opacity 0.35s ease;
@@ -1484,7 +1485,7 @@ ul { list-style: none; }
 
 .tool-modal {
   position: fixed;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   z-index: 200;
   display: flex;
   align-items: center;
@@ -1501,7 +1502,7 @@ ul { list-style: none; }
 
 .tool-modal__backdrop {
   position: absolute;
-  inset: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background: rgba(10, 10, 10, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
