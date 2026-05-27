@@ -369,38 +369,6 @@ ul { list-style: none; }
   overflow: hidden;
 }
 
-/* ── Breathing crimson glow orb ── */
-.hero__glow {
-  position: absolute;
-  width: 1000px;
-  height: 1000px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(196, 30, 58, 0.18) 0%,
-    rgba(196, 30, 58, 0.08) 35%,
-    rgba(196, 30, 58, 0.02) 60%,
-    transparent 70%
-  );
-  top: 50%;
-  left: 32%;
-  transform: translate(-50%, -52%);
-  pointer-events: none;
-  will-change: transform, opacity;
-  animation: glow-breathe 7s ease-in-out infinite;
-}
-
-@keyframes glow-breathe {
-  0%, 100% {
-    opacity: 0.55;
-    transform: translate(-50%, -52%) scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: translate(-50%, -52%) scale(1.22);
-  }
-}
-
 /* ── Scrolling marquee strip ── */
 .hero__marquee {
   position: absolute;
