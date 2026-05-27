@@ -613,11 +613,12 @@
 
       const PARTICLE_COLOR  = 'rgba(245, 245, 245, 0.45)';
       const LINE_COLOR_BASE = [196, 30, 58];
-      const REPEL_RADIUS    = 150;
-      const MAX_DIST        = 130;
-      const MAX_SPEED       = 2.2;
-      const EDGE_MARGIN     = 90;
-      const CLUSTER_SPREAD  = 70;
+      const REPEL_RADIUS   = 100;   // reduced by 1/3 from 150
+      const MAX_DIST       = 130;
+      const MAX_SPEED      = 2.2;
+      const EDGE_MARGIN    = 90;
+      const CLUSTER_SPREAD = 70;
+      const SPRING_K       = 0.0012; // gentle pull back to home after pulse
 
       let W, H, particles, ripples = [], frame = 0;
       let mouse = { x: -9999, y: -9999 };
@@ -639,6 +640,8 @@
       }
 
       function Particle(x, y) {
+        this.hx    = x;  // home — where it drifts back to
+        this.hy    = y;
         this.x     = x + (Math.random() - 0.5) * 8;
         this.y     = y + (Math.random() - 0.5) * 8;
         this.vx    = (Math.random() - 0.5) * 0.4;
@@ -651,17 +654,22 @@
       }
 
       Particle.prototype.update = function (t) {
-        // Energy field — each particle drifts on its own sine rhythm
+        // Energy field oscillation — always alive
         this.vx += Math.sin(t * this.freqX + this.phase)        * this.amp * 0.04;
         this.vy += Math.cos(t * this.freqY + this.phase * 1.41) * this.amp * 0.04;
 
-        // Soft boundary — invisible wall keeps them off the edges
-        if (this.x < EDGE_MARGIN)     this.vx += ((EDGE_MARGIN - this.x)       / EDGE_MARGIN) * 0.32;
-        if (this.x > W - EDGE_MARGIN) this.vx -= ((this.x - (W - EDGE_MARGIN)) / EDGE_MARGIN) * 0.32;
-        if (this.y < EDGE_MARGIN)     this.vy += ((EDGE_MARGIN - this.y)       / EDGE_MARGIN) * 0.32;
-        if (this.y > H - EDGE_MARGIN) this.vy -= ((this.y - (H - EDGE_MARGIN)) / EDGE_MARGIN) * 0.32;
+        // Soft spring home — weak near home (energy field wins),
+        // stronger when displaced by a pulse so it drifts back
+        this.vx += (this.hx - this.x) * SPRING_K;
+        this.vy += (this.hy - this.y) * SPRING_K;
 
-        // Ripple wave forces from cluster pulses
+        // Soft boundary — backs up the spring at the edges
+        if (this.x < EDGE_MARGIN)     this.vx += ((EDGE_MARGIN - this.x)       / EDGE_MARGIN) * 0.28;
+        if (this.x > W - EDGE_MARGIN) this.vx -= ((this.x - (W - EDGE_MARGIN)) / EDGE_MARGIN) * 0.28;
+        if (this.y < EDGE_MARGIN)     this.vy += ((EDGE_MARGIN - this.y)       / EDGE_MARGIN) * 0.28;
+        if (this.y > H - EDGE_MARGIN) this.vy -= ((this.y - (H - EDGE_MARGIN)) / EDGE_MARGIN) * 0.28;
+
+        // Ripple — subtle nudge as the wave front passes
         for (const rip of ripples) {
           const dx   = this.x - rip.x;
           const dy   = this.y - rip.y;
@@ -704,11 +712,9 @@
         this.y = Math.max(2, Math.min(H - 2, this.y));
       };
 
-      // Fire a visible shockwave from one of the 5 cluster centers
       let lastClusterIdx = -1;
       function spawnClusterPulse() {
         const centers = clusterCenters();
-        // Pick a different cluster than last time
         let idx;
         do { idx = Math.floor(Math.random() * centers.length); }
         while (idx === lastClusterIdx && centers.length > 1);
@@ -718,9 +724,9 @@
           x: c.x, y: c.y,
           radius:    0,
           maxRadius: Math.max(W, H) * 0.75,
-          speed:     2.2,
-          waveWidth: 45,
-          force:     0.85,
+          speed:     1.8,
+          waveWidth: 32,   // narrow front — precise, not broad
+          force:     0.28, // barely a nudge — spring pulls them right back
         });
       }
 
@@ -732,7 +738,6 @@
       }
 
       function schedulePulse() {
-        // Fires every 5–9 seconds, never predictably
         setTimeout(() => { spawnClusterPulse(); schedulePulse(); },
           5000 + Math.random() * 4000);
       }
@@ -740,7 +745,7 @@
       function init() {
         resize();
         const centers = clusterCenters();
-        const total   = isMobile() ? 60 : 120;
+        const total   = isMobile() ? 80 : 180; // more particles
         const perClus = Math.floor(total / centers.length);
 
         particles = [];
@@ -755,22 +760,21 @@
           }
         });
 
-        // First pulse at 3s, then randomised
         setTimeout(() => { spawnClusterPulse(); schedulePulse(); }, 3000);
       }
 
       function draw() {
         ctx.clearRect(0, 0, W, H);
 
-        // Visible pulse rings — the shockwave you can see travel outward
+        // Pulse rings — visible but delicate
         for (const rip of ripples) {
           const progress = rip.radius / rip.maxRadius;
-          const alpha    = (1 - progress) * 0.28;
-          if (alpha > 0.004) {
+          const alpha    = (1 - progress) * 0.18;
+          if (alpha > 0.003) {
             ctx.beginPath();
             ctx.arc(rip.x, rip.y, rip.radius, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(196, 30, 58, ${alpha})`;
-            ctx.lineWidth   = Math.max(0.4, 2.2 * (1 - progress));
+            ctx.lineWidth   = Math.max(0.3, 1.6 * (1 - progress));
             ctx.stroke();
           }
         }
@@ -824,8 +828,10 @@
       window.addEventListener('resize', () => {
         resize();
         particles.forEach(p => {
-          p.x = Math.max(EDGE_MARGIN, Math.min(W - EDGE_MARGIN, p.x));
-          p.y = Math.max(EDGE_MARGIN, Math.min(H - EDGE_MARGIN, p.y));
+          p.x  = Math.max(EDGE_MARGIN, Math.min(W - EDGE_MARGIN, p.x));
+          p.y  = Math.max(EDGE_MARGIN, Math.min(H - EDGE_MARGIN, p.y));
+          p.hx = Math.min(p.hx, W - EDGE_MARGIN);
+          p.hy = Math.min(p.hy, H - EDGE_MARGIN);
         });
       });
 
