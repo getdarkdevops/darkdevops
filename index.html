@@ -616,9 +616,7 @@
       const REPEL_RADIUS   = 100;
       const MAX_DIST       = 130;
       const MAX_SPEED      = 2.2;
-      const CLUSTER_SPREAD = 70;
-
-      let W, H, particles, frame = 0;
+let W, H, particles, frame = 0;
       let mouse = { x: -9999, y: -9999 };
       const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
@@ -627,19 +625,9 @@
         H = canvas.height = window.innerHeight;
       }
 
-      function clusterCenters() {
-        return [
-          { x: W * 0.17, y: H * 0.27 },
-          { x: W * 0.76, y: H * 0.21 },
-          { x: W * 0.50, y: H * 0.56 },
-          { x: W * 0.83, y: H * 0.71 },
-          { x: W * 0.21, y: H * 0.77 },
-        ];
-      }
-
-      function Particle(x, y) {
-        this.x     = x + (Math.random() - 0.5) * 8;
-        this.y     = y + (Math.random() - 0.5) * 8;
+      function Particle() {
+        this.x     = Math.random() * W;
+        this.y     = Math.random() * H;
         this.vx    = (Math.random() - 0.5) * 0.4;
         this.vy    = (Math.random() - 0.5) * 0.4;
         this.r     = Math.random() * 1.5 + 1.5;
@@ -687,19 +675,8 @@
 
       function init() {
         resize();
-        const centers = clusterCenters();
-        const total   = isMobile() ? 80 : 180;
-        const perClus = Math.floor(total / centers.length);
-
-        particles = [];
-        centers.forEach((c, ci) => {
-          const n = perClus + (ci === 0 ? total % centers.length : 0);
-          for (let i = 0; i < n; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const r     = Math.sqrt(Math.random()) * CLUSTER_SPREAD;
-            particles.push(new Particle(c.x + Math.cos(angle) * r, c.y + Math.sin(angle) * r));
-          }
-        });
+        const total = isMobile() ? 80 : 180;
+        particles = Array.from({ length: total }, () => new Particle());
       }
 
       function draw() {
