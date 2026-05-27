@@ -613,13 +613,12 @@
 
       const PARTICLE_COLOR  = 'rgba(245, 245, 245, 0.45)';
       const LINE_COLOR_BASE = [196, 30, 58];
-      const REPEL_RADIUS   = 100;   // reduced by 1/3 from 150
+      const REPEL_RADIUS   = 100;
       const MAX_DIST       = 130;
       const MAX_SPEED      = 2.2;
-      const EDGE_MARGIN    = 90;
       const CLUSTER_SPREAD = 70;
 
-      let W, H, particles, ripples = [], frame = 0;
+      let W, H, particles, frame = 0;
       let mouse = { x: -9999, y: -9999 };
       const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
 
@@ -651,30 +650,9 @@
       }
 
       Particle.prototype.update = function (t) {
-        // Energy field oscillation — always alive
+        // Energy field — unique sine drift per particle
         this.vx += Math.sin(t * this.freqX + this.phase)        * this.amp * 0.04;
         this.vy += Math.cos(t * this.freqY + this.phase * 1.41) * this.amp * 0.04;
-
-        // Soft boundary — keeps them off the edges
-        if (this.x < EDGE_MARGIN)     this.vx += ((EDGE_MARGIN - this.x)       / EDGE_MARGIN) * 0.28;
-        if (this.x > W - EDGE_MARGIN) this.vx -= ((this.x - (W - EDGE_MARGIN)) / EDGE_MARGIN) * 0.28;
-        if (this.y < EDGE_MARGIN)     this.vy += ((EDGE_MARGIN - this.y)       / EDGE_MARGIN) * 0.28;
-        if (this.y > H - EDGE_MARGIN) this.vy -= ((this.y - (H - EDGE_MARGIN)) / EDGE_MARGIN) * 0.28;
-
-        // Ripple — subtle nudge as the wave front passes
-        for (const rip of ripples) {
-          const dx   = this.x - rip.x;
-          const dy   = this.y - rip.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const diff = Math.abs(dist - rip.radius);
-          if (diff < rip.waveWidth && dist > 0) {
-            const intensity = (1 - diff / rip.waveWidth) * rip.force;
-            const falloff   = Math.max(0, 1 - rip.radius / rip.maxRadius);
-            const angle     = Math.atan2(dy, dx);
-            this.vx += Math.cos(angle) * intensity * falloff;
-            this.vy += Math.sin(angle) * intensity * falloff;
-          }
-        }
 
         // Mouse repulsion
         if (!isMobile() && mouse.x > 0) {
@@ -700,44 +678,17 @@
         this.x += this.vx;
         this.y += this.vy;
 
-        this.x = Math.max(2, Math.min(W - 2, this.x));
-        this.y = Math.max(2, Math.min(H - 2, this.y));
+        // Silent wrap — drift off one edge, reappear on the other
+        if (this.x < -20)    this.x = W + 20;
+        if (this.x > W + 20) this.x = -20;
+        if (this.y < -20)    this.y = H + 20;
+        if (this.y > H + 20) this.y = -20;
       };
-
-      let lastClusterIdx = -1;
-      function spawnClusterPulse() {
-        const centers = clusterCenters();
-        let idx;
-        do { idx = Math.floor(Math.random() * centers.length); }
-        while (idx === lastClusterIdx && centers.length > 1);
-        lastClusterIdx = idx;
-        const c = centers[idx];
-        ripples.push({
-          x: c.x, y: c.y,
-          radius:    0,
-          maxRadius: Math.max(W, H) * 0.75,
-          speed:     0.7,
-          waveWidth: 28,
-          force:     0.07,
-        });
-      }
-
-      function updateRipples() {
-        for (let i = ripples.length - 1; i >= 0; i--) {
-          ripples[i].radius += ripples[i].speed;
-          if (ripples[i].radius > ripples[i].maxRadius) ripples.splice(i, 1);
-        }
-      }
-
-      function schedulePulse() {
-        setTimeout(() => { spawnClusterPulse(); schedulePulse(); },
-          5000 + Math.random() * 4000);
-      }
 
       function init() {
         resize();
         const centers = clusterCenters();
-        const total   = isMobile() ? 80 : 180; // more particles
+        const total   = isMobile() ? 80 : 180;
         const perClus = Math.floor(total / centers.length);
 
         particles = [];
@@ -746,30 +697,13 @@
           for (let i = 0; i < n; i++) {
             const angle = Math.random() * Math.PI * 2;
             const r     = Math.sqrt(Math.random()) * CLUSTER_SPREAD;
-            const px    = Math.max(EDGE_MARGIN + 5, Math.min(W - EDGE_MARGIN - 5, c.x + Math.cos(angle) * r));
-            const py    = Math.max(EDGE_MARGIN + 5, Math.min(H - EDGE_MARGIN - 5, c.y + Math.sin(angle) * r));
-            particles.push(new Particle(px, py));
+            particles.push(new Particle(c.x + Math.cos(angle) * r, c.y + Math.sin(angle) * r));
           }
         });
-
-        setTimeout(() => { spawnClusterPulse(); schedulePulse(); }, 3000);
       }
 
       function draw() {
         ctx.clearRect(0, 0, W, H);
-
-        // Pulse rings — visible but delicate
-        for (const rip of ripples) {
-          const progress = rip.radius / rip.maxRadius;
-          const alpha    = (1 - progress) * 0.12;
-          if (alpha > 0.003) {
-            ctx.beginPath();
-            ctx.arc(rip.x, rip.y, rip.radius, 0, Math.PI * 2);
-            ctx.strokeStyle = `rgba(196, 30, 58, ${alpha})`;
-            ctx.lineWidth   = Math.max(0.3, 1.0 * (1 - progress));
-            ctx.stroke();
-          }
-        }
 
         // Connection lines
         for (let i = 0; i < particles.length; i++) {
@@ -800,7 +734,6 @@
 
       function loop() {
         frame++;
-        updateRipples();
         particles.forEach(p => p.update(frame));
         draw();
         requestAnimationFrame(loop);
@@ -817,13 +750,7 @@
         });
       }
 
-      window.addEventListener('resize', () => {
-        resize();
-        particles.forEach(p => {
-          p.x  = Math.max(EDGE_MARGIN, Math.min(W - EDGE_MARGIN, p.x));
-          p.y  = Math.max(EDGE_MARGIN, Math.min(H - EDGE_MARGIN, p.y));
-        });
-      });
+      window.addEventListener('resize', () => { resize(); });
 
       init();
       loop();
