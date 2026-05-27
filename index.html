@@ -618,7 +618,6 @@
       const MAX_SPEED      = 2.2;
       const EDGE_MARGIN    = 90;
       const CLUSTER_SPREAD = 70;
-      const SPRING_K       = 0.0012; // gentle pull back to home after pulse
 
       let W, H, particles, ripples = [], frame = 0;
       let mouse = { x: -9999, y: -9999 };
@@ -640,8 +639,6 @@
       }
 
       function Particle(x, y) {
-        this.hx    = x;  // home — where it drifts back to
-        this.hy    = y;
         this.x     = x + (Math.random() - 0.5) * 8;
         this.y     = y + (Math.random() - 0.5) * 8;
         this.vx    = (Math.random() - 0.5) * 0.4;
@@ -658,12 +655,7 @@
         this.vx += Math.sin(t * this.freqX + this.phase)        * this.amp * 0.04;
         this.vy += Math.cos(t * this.freqY + this.phase * 1.41) * this.amp * 0.04;
 
-        // Soft spring home — weak near home (energy field wins),
-        // stronger when displaced by a pulse so it drifts back
-        this.vx += (this.hx - this.x) * SPRING_K;
-        this.vy += (this.hy - this.y) * SPRING_K;
-
-        // Soft boundary — backs up the spring at the edges
+        // Soft boundary — keeps them off the edges
         if (this.x < EDGE_MARGIN)     this.vx += ((EDGE_MARGIN - this.x)       / EDGE_MARGIN) * 0.28;
         if (this.x > W - EDGE_MARGIN) this.vx -= ((this.x - (W - EDGE_MARGIN)) / EDGE_MARGIN) * 0.28;
         if (this.y < EDGE_MARGIN)     this.vy += ((EDGE_MARGIN - this.y)       / EDGE_MARGIN) * 0.28;
@@ -830,8 +822,6 @@
         particles.forEach(p => {
           p.x  = Math.max(EDGE_MARGIN, Math.min(W - EDGE_MARGIN, p.x));
           p.y  = Math.max(EDGE_MARGIN, Math.min(H - EDGE_MARGIN, p.y));
-          p.hx = Math.min(p.hx, W - EDGE_MARGIN);
-          p.hy = Math.min(p.hy, H - EDGE_MARGIN);
         });
       });
 
