@@ -46,6 +46,7 @@
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 72px;
+  overflow-x: hidden; /* iOS doesn't reliably contain horizontal overflow on <body> alone */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -766,6 +767,7 @@ ul { list-style: none; }
   padding: var(--section-pad) 0;
   background: rgba(10, 10, 10, 0.62);
   position: relative;
+  overflow: hidden; /* clip the decorative ink blobs so they can't widen the page */
 }
 
 /* Morphing ink blobs */
