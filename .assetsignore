@@ -1,0 +1,14 @@
+# Files in this directory that must NOT be published as static assets.
+# (Wrangler uploads everything in assets.directory except these.)
+node_modules
+src
+package.json
+package-lock.json
+wrangler.jsonc
+.assetsignore
+.gitignore
+.git
+.dev.vars*
+.env*
+.wrangler
+README.md

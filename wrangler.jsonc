@@ -1,6 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "dark-ink",
+  "main": "src/worker.js",
   "compatibility_date": "2026-05-19",
   "observability": {
     "enabled": true
@@ -10,5 +11,18 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  // Plain (non-secret) values. The recipient is just an email address.
+  "vars": {
+    "CONTACT_TO": "admin@dark-ink.ink"
+  },
+  // Cloudflare Email Routing binding — sends without any API key.
+  // The destination_address MUST be a verified address in Email Routing,
+  // and must match CONTACT_TO above.
+  "send_email": [
+    {
+      "name": "CONTACT_EMAIL",
+      "destination_address": "admin@dark-ink.ink"
+    }
   ]
 }

@@ -21,21 +21,40 @@ Static portfolio site for **Dark Ink** — a sole proprietorship offering cloud 
 
 ## Local development
 
-No build tooling required — open `index.html` directly in a browser or serve with any static file server:
+The site itself is plain HTML/CSS/JS — open `index.html` directly for quick visual work.
+
+To exercise the contact form locally you need the Worker running:
 
 ```bash
-npx serve .
-# or
-python -m http.server 8080
+npm install
+npm run dev      # wrangler dev — serves the site + /api/contact
 ```
+
+## Contact form
+
+`POST /api/contact` is handled by `src/worker.js`, which emails submissions to
+`CONTACT_TO` via Cloudflare **Email Routing** (the `send_email` binding) — no
+third-party service and no API keys.
+
+One-time setup in the Cloudflare dashboard before the form will deliver:
+
+1. Add `dark-ink.ink` to this Cloudflare account (so `noreply@dark-ink.ink` is a
+   valid sender).
+2. **Email → Email Routing → Destination addresses**: add and **verify**
+   `admin@dark-ink.ink` (must match `destination_address` in `wrangler.jsonc`
+   and `CONTACT_TO`).
+
+Spam protection: a hidden `company` honeypot field; submissions that fill it are
+silently accepted but not emailed.
 
 ## Deployment
 
-Hosted via GitHub Pages. Any push to `main` updates the live site.
+```bash
+npm run deploy   # wrangler deploy
+```
 
-To enable: **Settings → Pages → Branch: `main`, folder: `/ (root)`**
-
-Live URL: `https://sampouls.github.io/dark-ink`
+Deploys the static assets + Worker together. `.assetsignore` keeps source,
+config, and `node_modules` out of the published asset bundle.
 
 ## Customization checklist
 

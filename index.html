@@ -525,6 +525,12 @@
                 <textarea id="message" name="message" placeholder="Tell me about your project, timeline, and what you're trying to accomplish…" required></textarea>
               </div>
 
+              <!-- Honeypot: hidden from humans; bots that fill it are silently dropped -->
+              <div class="form-hp" aria-hidden="true">
+                <label for="company">Company (leave this blank)</label>
+                <input type="text" id="company" name="company" tabindex="-1" autocomplete="off">
+              </div>
+
               <div class="form__submit">
                 <p class="form__note" id="form-note">I'll respond within 48 hours.</p>
                 <button type="submit" class="btn btn--primary" id="form-submit">Send message</button>
