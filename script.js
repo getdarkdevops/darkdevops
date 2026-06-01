@@ -70,25 +70,52 @@ const form       = document.getElementById('contact-form');
 const submitBtn  = document.getElementById('form-submit');
 const formNote   = document.getElementById('form-note');
 
+const SUCCESS_HTML = `
+  <div style="padding:2.5rem 0; text-align:center; display:flex; flex-direction:column; gap:1rem; align-items:center;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c41e3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <p style="font-family:'Fraunces',serif;font-size:1.4rem;font-style:italic;font-weight:300;color:#f5f5f5;">Message received.</p>
+    <p style="font-size:0.875rem;color:#a0a0a0;">I'll be in touch within 48 hours.</p>
+  </div>`;
+
 if (form) {
-  form.addEventListener('submit', e => {
+  form.addEventListener('submit', async e => {
     e.preventDefault();
 
     // Visual feedback
-    submitBtn.disabled   = true;
+    submitBtn.disabled    = true;
     submitBtn.textContent = 'Sending…';
+    formNote.style.color  = '';
 
-    // Simulate async (swap for real fetch/formspree/etc.)
-    setTimeout(() => {
-      form.innerHTML = `
-        <div style="padding:2.5rem 0; text-align:center; display:flex; flex-direction:column; gap:1rem; align-items:center;">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c41e3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-          <p style="font-family:'Fraunces',serif;font-size:1.4rem;font-style:italic;font-weight:300;color:#f5f5f5;">Message received.</p>
-          <p style="font-size:0.875rem;color:#a0a0a0;">I'll be in touch within 48 hours.</p>
-        </div>`;
-    }, 1200);
+    const fd = new FormData(form);
+    const payload = {
+      name:    fd.get('name')    || '',
+      email:   fd.get('email')   || '',
+      subject: fd.get('subject') || '',
+      message: fd.get('message') || '',
+      company: fd.get('company') || '', // honeypot — real users leave this blank
+    };
+
+    try {
+      const res = await fetch('/api/contact', {
+        method:  'POST',
+        headers: { 'content-type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || 'Something went wrong.');
+      }
+
+      form.innerHTML = SUCCESS_HTML;
+    } catch (err) {
+      submitBtn.disabled    = false;
+      submitBtn.textContent = 'Send message';
+      formNote.textContent  = `Couldn't send — ${err.message} You can also email admin@dark-ink.ink directly.`;
+      formNote.style.color  = 'var(--accent-text)';
+    }
   });
 }
 
@@ -158,9 +185,23 @@ const toolBody     = document.getElementById('tool-modal-body');
 const toolClose    = document.getElementById('tool-modal-close');
 const toolBackdrop = document.getElementById('tool-modal-backdrop');
 
+// Remembers what had focus before the modal opened, so we can restore it.
+let modalLastFocused = null;
+
+// Visible, focusable elements inside the modal (for the Tab trap).
+function modalFocusable() {
+  return Array.from(
+    toolModal.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    )
+  ).filter(el => el.offsetParent !== null);
+}
+
 function openModal(key) {
   const data = toolDescriptions[key];
   if (!data) return;
+
+  modalLastFocused = document.activeElement;
 
   toolTitle.textContent = data.title;
   toolBody.innerHTML = data.body.map(p => `<p>${p}</p>`).join('');
@@ -175,6 +216,12 @@ function closeModal() {
   toolModal.classList.remove('open');
   toolModal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
+
+  // Return focus to the pill (or whatever) that opened the modal.
+  if (modalLastFocused && typeof modalLastFocused.focus === 'function') {
+    modalLastFocused.focus();
+  }
+  modalLastFocused = null;
 }
 
 document.querySelectorAll('.stack-pill[data-tool]').forEach(pill => {
@@ -185,7 +232,31 @@ toolClose.addEventListener('click', closeModal);
 toolBackdrop.addEventListener('click', closeModal);
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && toolModal.classList.contains('open')) closeModal();
+  if (!toolModal.classList.contains('open')) return;
+
+  if (e.key === 'Escape') {
+    closeModal();
+    return;
+  }
+
+  // Trap Tab focus inside the modal so it can't drift to the page behind it.
+  if (e.key === 'Tab') {
+    const focusable = modalFocusable();
+    if (focusable.length === 0) {
+      e.preventDefault();
+      return;
+    }
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
 });
 
 /* ── Active nav link highlight on scroll ──────────────────── */
