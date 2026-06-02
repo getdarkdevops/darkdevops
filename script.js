@@ -1,5 +1,5 @@
 /* ============================================================
-   DARK INK — script.js
+   DARK OPS — script.js
    ============================================================ */
 
 'use strict';
@@ -113,7 +113,7 @@ if (form) {
     } catch (err) {
       submitBtn.disabled    = false;
       submitBtn.textContent = 'Send message';
-      formNote.textContent  = `Couldn't send — ${err.message} You can also email admin@dark-ink.ink directly.`;
+      formNote.textContent  = `Couldn't send — ${err.message} You can also email admin@darkops.com directly.`;
       formNote.style.color  = 'var(--accent-text)';
     }
   });

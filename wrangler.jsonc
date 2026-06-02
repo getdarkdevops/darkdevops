@@ -14,7 +14,7 @@
   ],
   // Plain (non-secret) values. The recipient is just an email address.
   "vars": {
-    "CONTACT_TO": "admin@dark-ink.ink"
+    "CONTACT_TO": "admin@darkops.com"
   },
   // Cloudflare Email Routing binding — sends without any API key.
   // The destination_address MUST be a verified address in Email Routing,
@@ -22,7 +22,11 @@
   "send_email": [
     {
       "name": "CONTACT_EMAIL",
-      "destination_address": "admin@dark-ink.ink"
+      "destination_address": "admin@darkops.com"
     }
+  ],
+  "routes": [
+    { "pattern": "darkops.com", "custom_domain": true },
+    { "pattern": "www.darkops.com", "custom_domain": true }
   ]
 }

@@ -1,6 +1,6 @@
-# Dark Ink
+# Dark Ops
 
-Static portfolio site for **Dark Ink** — a sole proprietorship offering cloud automation consulting and live streaming.
+Static portfolio site for **Dark Ops** — a sole proprietorship offering GCP automation consulting.
 
 ## Stack
 
@@ -38,10 +38,10 @@ third-party service and no API keys.
 
 One-time setup in the Cloudflare dashboard before the form will deliver:
 
-1. Add `dark-ink.ink` to this Cloudflare account (so `noreply@dark-ink.ink` is a
+1. Add `darkops.com` to this Cloudflare account (so `noreply@darkops.com` is a
    valid sender).
 2. **Email → Email Routing → Destination addresses**: add and **verify**
-   `admin@dark-ink.ink` (must match `destination_address` in `wrangler.jsonc`
+   `admin@darkops.com` (must match `destination_address` in `wrangler.jsonc`
    and `CONTACT_TO`).
 
 Spam protection: a hidden `company` honeypot field; submissions that fill it are
