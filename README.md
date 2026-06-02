@@ -58,8 +58,8 @@ config, and `node_modules` out of the published asset bundle.
 
 ## Customization checklist
 
-- [ ] Replace `darkink` Twitch handle with real channel slug
-- [ ] Update contact emails (`hello@darkink.co`)
+- [ ] Replace `darkdevops` Twitch handle with real channel slug
+- [ ] Update contact emails (`hello@darkdevops.com`)
 - [ ] Swap clip card placeholders with Twitch API thumbnails or embeds
 - [ ] Update GitHub / LinkedIn slugs in footer and contact section
 - [ ] Confirm measurements in About cards if surfaced elsewhere

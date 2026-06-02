@@ -1,5 +1,5 @@
 /* ============================================================
-   DARK INK — Worker
+   DARKDEVOPS — Worker
    Serves the static site (via the [assets] binding) and handles
    the contact form at POST /api/contact.
 
@@ -71,7 +71,7 @@ async function handleContact(request, env) {
   }
 
   const text =
-    `New inquiry from the Dark Ink site\n` +
+    `New inquiry from the DarkDevOps site\n` +
     `------------------------------------\n` +
     `Name:    ${name}\n` +
     `Email:   ${email}\n` +
@@ -80,16 +80,16 @@ async function handleContact(request, env) {
 
   const msg = createMimeMessage();
   // FROM must be an address on a domain verified in this Cloudflare account.
-  msg.setSender({ name: 'Dark Ink Website', addr: 'noreply@dark-ink.ink' });
+  msg.setSender({ name: 'DarkDevOps Website', addr: 'noreply@darkdevops.com' });
   msg.setRecipient(env.CONTACT_TO);
-  msg.setSubject(`Dark Ink inquiry: ${subject}`);
+  msg.setSubject(`DarkDevOps inquiry: ${subject}`);
   // So replying in your inbox goes straight back to the sender.
   msg.setHeader('Reply-To', `${name} <${email}>`);
   msg.addMessage({ contentType: 'text/plain', data: text });
 
   try {
     await env.CONTACT_EMAIL.send(
-      new EmailMessage('noreply@dark-ink.ink', env.CONTACT_TO, msg.asRaw())
+      new EmailMessage('noreply@darkdevops.com', env.CONTACT_TO, msg.asRaw())
     );
   } catch (err) {
     console.error('send_email failed:', err && err.message);
