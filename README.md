@@ -1,6 +1,6 @@
-# Dark Ops
+# DarkDevOps
 
-Static portfolio site for **Dark Ops** — a sole proprietorship offering GCP automation consulting.
+Static portfolio site for **DarkDevOps** ([darkdevops.com](https://darkdevops.com)) — a sole proprietorship offering GCP automation consulting.
 
 ## Stack
 
@@ -38,10 +38,10 @@ third-party service and no API keys.
 
 One-time setup in the Cloudflare dashboard before the form will deliver:
 
-1. Add `darkops.com` to this Cloudflare account (so `noreply@darkops.com` is a
-   valid sender).
+1. Add `darkdevops.com` to this Cloudflare account (so `noreply@darkdevops.com`
+   is a valid sender).
 2. **Email → Email Routing → Destination addresses**: add and **verify**
-   `admin@darkops.com` (must match `destination_address` in `wrangler.jsonc`
+   `admin@darkdevops.com` (must match `destination_address` in `wrangler.jsonc`
    and `CONTACT_TO`).
 
 Spam protection: a hidden `company` honeypot field; submissions that fill it are
