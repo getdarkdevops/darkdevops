@@ -8,7 +8,7 @@
    ============================================================ */
 
 import { EmailMessage } from 'cloudflare:email';
-import { createMimeMessage } from 'mimetext';
+import { createMimeMessage, Mailbox } from 'mimetext';
 
 const MAX = { name: 100, email: 254, subject: 80, message: 5000 };
 // Basic, intentionally-permissive email shape check. Real validation
@@ -84,9 +84,9 @@ async function handleContact(request, env) {
     msg.setSender({ name: 'DarkDevOps Website', addr: 'noreply@darkdevops.com' });
     msg.setRecipient(env.CONTACT_TO);
     msg.setSubject(`DarkDevOps inquiry: ${subject}`);
-    // So replying in your inbox goes straight back to the sender. Bare address
-    // only — mimetext rejects the "Name <addr>" form in setHeader.
-    msg.setHeader('Reply-To', email);
+    // So replying in your inbox goes straight back to the sender. Address
+    // headers must be Mailbox objects — mimetext rejects plain strings.
+    msg.setHeader('Reply-To', new Mailbox(email));
     msg.addMessage({ contentType: 'text/plain', data: text });
 
     await env.CONTACT_EMAIL.send(
