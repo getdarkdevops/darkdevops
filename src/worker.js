@@ -78,16 +78,17 @@ async function handleContact(request, env) {
     `Subject: ${subject}\n\n` +
     `${message}\n`;
 
-  const msg = createMimeMessage();
-  // FROM must be an address on a domain verified in this Cloudflare account.
-  msg.setSender({ name: 'DarkDevOps Website', addr: 'noreply@darkdevops.com' });
-  msg.setRecipient(env.CONTACT_TO);
-  msg.setSubject(`DarkDevOps inquiry: ${subject}`);
-  // So replying in your inbox goes straight back to the sender.
-  msg.setHeader('Reply-To', `${name} <${email}>`);
-  msg.addMessage({ contentType: 'text/plain', data: text });
-
   try {
+    const msg = createMimeMessage();
+    // FROM must be an address on a domain verified in this Cloudflare account.
+    msg.setSender({ name: 'DarkDevOps Website', addr: 'noreply@darkdevops.com' });
+    msg.setRecipient(env.CONTACT_TO);
+    msg.setSubject(`DarkDevOps inquiry: ${subject}`);
+    // So replying in your inbox goes straight back to the sender. Bare address
+    // only — mimetext rejects the "Name <addr>" form in setHeader.
+    msg.setHeader('Reply-To', email);
+    msg.addMessage({ contentType: 'text/plain', data: text });
+
     await env.CONTACT_EMAIL.send(
       new EmailMessage('noreply@darkdevops.com', env.CONTACT_TO, msg.asRaw())
     );
