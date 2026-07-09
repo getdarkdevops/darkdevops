@@ -12,3 +12,7 @@ wrangler.jsonc
 .env*
 .wrangler
 README.md
+# Agent scratch space and git worktrees live here. A worktree under the asset
+# root is a full second copy of the site, so without this line `wrangler deploy`
+# publishes unreleased branches at /.claude/worktrees/<branch>/. It has happened.
+.claude
