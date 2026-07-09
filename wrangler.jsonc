@@ -24,6 +24,16 @@
       "name": "CONTACT_EMAIL",
       "destination_address": "sales@darkdevops.com"
     }
+    // The auto-reply goes to whoever filled the form, so it cannot use a
+    // verified-destination binding. Sending to arbitrary recipients requires
+    // darkdevops.com to be onboarded as a sending domain in Email Service
+    // (Email Sending, beta, Workers Paid). Until then the Worker sees no
+    // CONTACT_AUTOREPLY binding and skips the confirmation.
+    //
+    // {
+    //   "name": "CONTACT_AUTOREPLY",
+    //   "allowed_sender_addresses": ["sales@darkdevops.com"]
+    // }
   ],
   "routes": [
     { "pattern": "darkdevops.com", "custom_domain": true },

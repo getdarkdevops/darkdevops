@@ -70,13 +70,27 @@ const form       = document.getElementById('contact-form');
 const submitBtn  = document.getElementById('form-submit');
 const formNote   = document.getElementById('form-note');
 
-const SUCCESS_HTML = `
+const BOOKING_URL = 'https://calendly.com/darkdevops/discovery';
+
+// Keyed by the <select name="subject"> values. Kept in step with TOPICS in
+// src/worker.js, which writes the same labels into the confirmation email.
+const TOPIC_LABELS = {
+  workflow:  'workflow automation',
+  pipelines: 'data pipelines',
+  tools:     'internal tools',
+  api:       'API integrations',
+  other:     'your project',
+};
+
+const successHtml = subject => `
   <div style="padding:2.5rem 0; text-align:center; display:flex; flex-direction:column; gap:1rem; align-items:center;">
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#c41e3a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <polyline points="20 6 9 17 4 12"></polyline>
     </svg>
     <p style="font-family:'Fraunces',serif;font-size:1.4rem;font-style:italic;font-weight:300;color:#f5f5f5;">Message received.</p>
-    <p style="font-size:0.875rem;color:#a0a0a0;">I'll be in touch within 48 hours.</p>
+    <p style="font-size:0.875rem;color:#a0a0a0;max-width:34ch;">I'll be in touch within 48 hours about ${TOPIC_LABELS[subject] ?? TOPIC_LABELS.other}.</p>
+    <a href="${BOOKING_URL}" target="_blank" rel="noopener noreferrer" class="btn btn--primary" style="margin-top:0.5rem;">Book a 15 min call</a>
+    <p style="font-size:0.8125rem;color:#6f6f6f;">Or skip the wait and grab a time now.</p>
   </div>`;
 
 if (form) {
@@ -109,7 +123,7 @@ if (form) {
         throw new Error(data.error || 'Something went wrong.');
       }
 
-      form.innerHTML = SUCCESS_HTML;
+      form.innerHTML = successHtml(payload.subject);
     } catch (err) {
       submitBtn.disabled    = false;
       submitBtn.textContent = 'Send message';
