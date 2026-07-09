@@ -41,8 +41,13 @@ One-time setup in the Cloudflare dashboard before the form will deliver:
 1. Add `darkdevops.com` to this Cloudflare account (so `noreply@darkdevops.com`
    is a valid sender).
 2. **Email → Email Routing → Destination addresses**: add and **verify**
-   `admin@darkdevops.com` (must match `destination_address` in `wrangler.jsonc`
+   `sales@darkdevops.com` (must match `destination_address` in `wrangler.jsonc`
    and `CONTACT_TO`).
+
+   Verification is **per Cloudflare account** and does not survive moving the zone
+   to a different account. An unverified destination makes `send_email` throw, and
+   every valid submission returns `502 Could not send right now` — the form looks
+   broken with no other symptom. Re-verify after any account migration.
 
 Spam protection: a hidden `company` honeypot field; submissions that fill it are
 silently accepted but not emailed.
